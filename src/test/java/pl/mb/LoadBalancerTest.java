@@ -83,4 +83,28 @@ public class LoadBalancerTest {
         assertThat(server.load()).isEqualTo(new Percent(90));
         assertThat(server.contains(vm)).isFalse();
     }
+
+    @Test
+    public void balance_serversAndVms() {
+        Server s1 = new Server(4);
+        Server s2 = new Server(6);
+
+        Vm vm1 = new Vm(1);
+        Vm vm2 = new Vm(4);
+        Vm vm3 = new Vm(2);
+
+        new ServerLoadBalancer(
+                servers(s1, s2), vms(vm1, vm2, vm3)).balance();
+
+        assertThat(s1.contains(vm1)).isTrue();
+        assertThat(s1.contains(vm3)).isTrue();
+        assertThat(s1.contains(vm2)).isFalse();
+
+        assertThat(s2.contains(vm2)).isTrue();
+        assertThat(s2.contains(vm1)).isFalse();
+        assertThat(s2.contains(vm3)).isFalse();
+
+        assertThat(s1.load()).isEqualTo(new Percent(75));
+        assertThat(s2.load()).isEqualTo(new Percent(67));
+    }
 }
