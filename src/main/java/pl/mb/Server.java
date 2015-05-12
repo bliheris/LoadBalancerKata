@@ -14,16 +14,7 @@ public class Server {
     }
 
     public Percent load() {
-        if(vms.isEmpty()){
-            return Percent.zero();
-        }
-
-        int totalSize = 0;
-        for (Vm vm : vms) {
-            totalSize += vm.size();
-        }
-
-        return Percent.make(totalSize, capacity);
+        return Percent.make(takenCapacity(), capacity);
     }
 
     public void addVm(Vm vm) {
@@ -36,5 +27,17 @@ public class Server {
 
     public int vmCount() {
         return vms.size();
+    }
+
+    public boolean cannotTake(Vm vm) {
+        return takenCapacity() + vm.size() > capacity;
+    }
+
+    private int takenCapacity(){
+        int res = 0;
+        for (Vm vm : vms) {
+            res += vm.size();
+        }
+        return res;
     }
 }

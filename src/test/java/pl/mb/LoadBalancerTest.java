@@ -9,9 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LoadBalancerTest {
 
-    @Test
-    public void itCompiles() {
-        assertThat(true).isEqualTo(true);
+    private Vm[] vms(Vm... vms) {
+        return vms;
+    }
+    private Server[] servers(Server... servers) {
+        return servers;
     }
 
     @Test
@@ -64,11 +66,21 @@ public class LoadBalancerTest {
         lessLoadedServer.addVm(new Vm(40));
         Vm vm = new Vm(23);
 
-        new ServerLoadBalancer(new Server[]{moreLoadedServer, lessLoadedServer},
-                new Vm[]{vm}).balance();
+        new ServerLoadBalancer(servers(moreLoadedServer, lessLoadedServer),
+                vms(vm)).balance();
 
         assertThat(lessLoadedServer.contains(vm)).isTrue();
         assertThat(lessLoadedServer.load()).isEqualTo(new Percent(63));
+    }
 
+    @Test
+    public void balanceAServerWithNotEnoughRoom_shouldNotBeFilledWithAVm(){
+        Server server = new Server(10);
+        server.addVm(new Vm(9));
+        Vm vm = new Vm(2);
+
+        new ServerLoadBalancer(servers(server), vms(vm)).balance();
+        assertThat(server.load()).isEqualTo(new Percent(90));
+        assertThat(server.contains(vm)).isFalse();
     }
 }
