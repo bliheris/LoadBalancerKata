@@ -3,14 +3,16 @@ package pl.mb;
 public class ServerLoadBalancer {
 
     private Server server;
-    private Vm vm;
+    private Vm[] vms;
 
-    public ServerLoadBalancer(Server server, Vm vm) {
+    public ServerLoadBalancer(Server server, Vm[] vms) {
         this.server = server;
-        this.vm = vm;
+        this.vms = vms;
     }
 
     public void balance() {
-        server.addVm(vm);
+        for (Vm vm : vms) {
+            server.addVm(vm);
+        }
     }
 }

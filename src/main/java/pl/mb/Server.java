@@ -33,4 +33,8 @@ public class Server {
     public boolean contains(Vm vm) {
         return vms.contains(vm);
     }
+
+    public int vmCount() {
+        return vms.size();
+    }
 }
