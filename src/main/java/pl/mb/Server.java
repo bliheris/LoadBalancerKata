@@ -23,7 +23,7 @@ public class Server {
             totalSize += vm.size();
         }
 
-        return new Percent((totalSize / capacity) * 100);
+        return Percent.make(totalSize, capacity);
     }
 
     public void addVm(Vm vm) {
