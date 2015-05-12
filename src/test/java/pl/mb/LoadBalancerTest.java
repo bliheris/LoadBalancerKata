@@ -18,11 +18,13 @@ public class LoadBalancerTest {
         assertThat(server.load()).isEqualTo(Percent.zero());
     }
 
-/*    @Test
+    @Test
     public void balancingOneServerWithOneSlotCapacity_andOneSlotVm_fillsTheServerWithTheVm() {
         Server server = new Server(1);
         Vm vm = new Vm(1);
+        new ServerLoadBalancer(server, vm).balance();
 
         assertThat(server.load()).isEqualTo(Percent.hundred());
-    }*/
+        assertThat(server.contains(vm)).isTrue();
+    }
 }
