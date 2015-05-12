@@ -1,13 +1,10 @@
 package pl.mb;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LoadBalancerTest {
+public class ServerFarmTest {
 
     private Vm[] vms(Vm... vms) {
         return vms;
@@ -27,7 +24,8 @@ public class LoadBalancerTest {
         Server server = new Server(1);
         Vm vm = new Vm(1);
 
-        new ServerLoadBalancer(new Server[]{server}, new Vm[]{vm}).balance();
+        ServerFarm sf = new ServerFarm(servers(server));
+        sf.addVms(vms(vm));
 
         assertThat(server.contains(vm)).isTrue();
         assertThat(server.load()).isEqualTo(Percent.hundred());
@@ -38,11 +36,13 @@ public class LoadBalancerTest {
         Server server = new Server(10);
         Vm vm = new Vm(1);
 
-        new ServerLoadBalancer(new Server[]{server}, new Vm[]{vm}).balance();
+        ServerFarm sf = new ServerFarm(servers(server));
+        sf.addVms(vms(vm));
 
         assertThat(server.contains(vm)).isTrue();
         assertThat(server.load()).isEqualTo(new Percent(10));
     }
+
 
     @Test
     public void balancingAServerWithEnoughRoom_getsFilledWithAllVms(){
@@ -50,13 +50,15 @@ public class LoadBalancerTest {
         Vm firstVm = new Vm(1);
         Vm secondVm = new Vm(2);
 
-        new ServerLoadBalancer(new Server[]{server}, new Vm[]{firstVm, secondVm}).balance();
+        ServerFarm sf = new ServerFarm(servers(server));
+        sf.addVms(vms(firstVm, secondVm));
 
         assertThat(server.vmCount()).isEqualTo(2);
         assertThat(server.contains(firstVm)).isTrue();
         assertThat(server.contains(secondVm)).isTrue();
         assertThat(server.load()).isEqualTo(new Percent(30));
     }
+
 
     @Test
     public void aVm_shouldBeBalanced_onLessLoadedServerFirst(){
@@ -66,8 +68,8 @@ public class LoadBalancerTest {
         lessLoadedServer.addVm(new Vm(40));
         Vm vm = new Vm(23);
 
-        new ServerLoadBalancer(servers(moreLoadedServer, lessLoadedServer),
-                vms(vm)).balance();
+        ServerFarm sf = new ServerFarm(servers(moreLoadedServer, lessLoadedServer));
+        sf.addVms(vms(vm));
 
         assertThat(lessLoadedServer.contains(vm)).isTrue();
         assertThat(lessLoadedServer.load()).isEqualTo(new Percent(63));
@@ -79,7 +81,9 @@ public class LoadBalancerTest {
         server.addVm(new Vm(9));
         Vm vm = new Vm(2);
 
-        new ServerLoadBalancer(servers(server), vms(vm)).balance();
+        ServerFarm sf = new ServerFarm(servers(server));
+        sf.addVms(vms(vm));
+
         assertThat(server.load()).isEqualTo(new Percent(90));
         assertThat(server.contains(vm)).isFalse();
     }
@@ -93,8 +97,8 @@ public class LoadBalancerTest {
         Vm vm2 = new Vm(4);
         Vm vm3 = new Vm(2);
 
-        new ServerLoadBalancer(
-                servers(s1, s2), vms(vm1, vm2, vm3)).balance();
+        ServerFarm sf = new ServerFarm(servers(s1, s2));
+        sf.addVms(vms(vm1, vm2, vm3));
 
         assertThat(s1.contains(vm1)).isTrue();
         assertThat(s1.contains(vm3)).isTrue();
