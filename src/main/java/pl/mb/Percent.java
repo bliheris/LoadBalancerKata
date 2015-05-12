@@ -5,7 +5,7 @@ import org.omg.IOP.RMICustomMaxStreamFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class Percent {
+public class Percent implements Comparable<Percent> {
 
     private static final int SCALE = 2;
     private static final RoundingMode RM = RoundingMode.HALF_UP;
@@ -55,5 +55,10 @@ public class Percent {
     @Override
     public int hashCode() {
         return value != null ? value.hashCode() : 0;
+    }
+
+    @Override
+    public int compareTo(Percent o) {
+        return value.compareTo(o.value);
     }
 }

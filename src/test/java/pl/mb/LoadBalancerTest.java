@@ -25,7 +25,7 @@ public class LoadBalancerTest {
         Server server = new Server(1);
         Vm vm = new Vm(1);
 
-        new ServerLoadBalancer(server, new Vm[]{vm}).balance();
+        new ServerLoadBalancer(new Server[]{server}, new Vm[]{vm}).balance();
 
         assertThat(server.contains(vm)).isTrue();
         assertThat(server.load()).isEqualTo(Percent.hundred());
@@ -36,7 +36,7 @@ public class LoadBalancerTest {
         Server server = new Server(10);
         Vm vm = new Vm(1);
 
-        new ServerLoadBalancer(server, new Vm[]{vm}).balance();
+        new ServerLoadBalancer(new Server[]{server}, new Vm[]{vm}).balance();
 
         assertThat(server.contains(vm)).isTrue();
         assertThat(server.load()).isEqualTo(new Percent(10));
@@ -48,11 +48,27 @@ public class LoadBalancerTest {
         Vm firstVm = new Vm(1);
         Vm secondVm = new Vm(2);
 
-        new ServerLoadBalancer(server, new Vm[]{firstVm, secondVm}).balance();
+        new ServerLoadBalancer(new Server[]{server}, new Vm[]{firstVm, secondVm}).balance();
 
         assertThat(server.vmCount()).isEqualTo(2);
-        assertThat(server.contains(firstVm));
-        assertThat(server.contains(secondVm));
+        assertThat(server.contains(firstVm)).isTrue();
+        assertThat(server.contains(secondVm)).isTrue();
         assertThat(server.load()).isEqualTo(new Percent(30));
+    }
+
+    @Test
+    public void aVm_shouldBeBalanced_onLessLoadedServerFirst(){
+        Server moreLoadedServer = new Server(100);
+        moreLoadedServer.addVm(new Vm(55));
+        Server lessLoadedServer = new Server(100);
+        lessLoadedServer.addVm(new Vm(40));
+        Vm vm = new Vm(23);
+
+        new ServerLoadBalancer(new Server[]{moreLoadedServer, lessLoadedServer},
+                new Vm[]{vm}).balance();
+
+        assertThat(lessLoadedServer.contains(vm)).isTrue();
+        assertThat(lessLoadedServer.load()).isEqualTo(new Percent(63));
+
     }
 }
