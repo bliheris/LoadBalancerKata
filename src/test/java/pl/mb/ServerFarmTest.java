@@ -1,11 +1,13 @@
 package pl.mb;
 
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static pl.mb.Percent.hundred;
 import static pl.mb.Percent.zero;
+import static pl.mb.ServerContentMatcher.contains;
+import static pl.mb.ServerContentMatcher.containsOnly;
 import static pl.mb.ServerLoadMatcher.hasLoadPercentageOf;
 
 public class ServerFarmTest {
@@ -20,7 +22,7 @@ public class ServerFarmTest {
     @Test
     public void balancing_oneServer_noVms_serverStaysEmpty() {
         Server server = new Server(1);
-        MatcherAssert.assertThat(server, hasLoadPercentageOf(zero()));
+        assertThat(server, hasLoadPercentageOf(zero()));
     }
 
     @Test
@@ -31,8 +33,8 @@ public class ServerFarmTest {
         ServerFarm sf = new ServerFarm(servers(server));
         sf.addVms(vms(vm));
 
-        assertThat(server.contains(vm)).isTrue();
-        MatcherAssert.assertThat(server, hasLoadPercentageOf(hundred()));
+        assertThat(server, contains(vm));
+        assertThat(server, hasLoadPercentageOf(hundred()));
     }
 
     @Test
@@ -43,10 +45,9 @@ public class ServerFarmTest {
         ServerFarm sf = new ServerFarm(servers(server));
         sf.addVms(vms(vm));
 
-        assertThat(server.contains(vm)).isTrue();
-        MatcherAssert.assertThat(server, hasLoadPercentageOf(new Percent(10)));
+        assertThat(server, contains(vm));
+        assertThat(server, hasLoadPercentageOf(new Percent(10)));
     }
-
 
     @Test
     public void balancingAServerWithEnoughRoom_getsFilledWithAllVms(){
@@ -57,13 +58,10 @@ public class ServerFarmTest {
         ServerFarm sf = new ServerFarm(servers(server));
         sf.addVms(vms(firstVm, secondVm));
 
-        assertThat(server.vmCount()).isEqualTo(2);
-        assertThat(server.contains(firstVm)).isTrue();
-        assertThat(server.contains(secondVm)).isTrue();
-        MatcherAssert.assertThat(server, hasLoadPercentageOf(new Percent(30)));
-
+        assertThat(server.vmCount(), is(2));
+        assertThat(server, contains(firstVm, secondVm));
+        assertThat(server, hasLoadPercentageOf(new Percent(30)));
     }
-
 
     @Test
     public void aVm_shouldBeBalanced_onLessLoadedServerFirst(){
@@ -76,23 +74,22 @@ public class ServerFarmTest {
         ServerFarm sf = new ServerFarm(servers(moreLoadedServer, lessLoadedServer));
         sf.addVms(vms(vm));
 
-        assertThat(lessLoadedServer.contains(vm)).isTrue();
-        MatcherAssert.assertThat(lessLoadedServer,
-                hasLoadPercentageOf(new Percent(63)));
+        assertThat(lessLoadedServer, contains(vm));
+        assertThat(lessLoadedServer, hasLoadPercentageOf(new Percent(63)));
     }
 
     @Test
     public void balanceAServerWithNotEnoughRoom_shouldNotBeFilledWithAVm(){
         Server server = new Server(10);
-        server.addVm(new Vm(9));
-        Vm vm = new Vm(2);
+        Vm oldVm = new Vm(9);
+        server.addVm(oldVm);
 
         ServerFarm sf = new ServerFarm(servers(server));
-        sf.addVms(vms(vm));
+        Vm newVm = new Vm(2);
+        sf.addVms(vms(newVm));
 
-        MatcherAssert.assertThat(server, hasLoadPercentageOf(new Percent(90)));
-
-        assertThat(server.contains(vm)).isFalse();
+        assertThat(server, containsOnly(oldVm));
+        assertThat(server, hasLoadPercentageOf(new Percent(90)));
     }
 
     @Test
@@ -107,15 +104,10 @@ public class ServerFarmTest {
         ServerFarm sf = new ServerFarm(servers(s1, s2));
         sf.addVms(vms(vm1, vm2, vm3));
 
-        assertThat(s1.contains(vm1)).isTrue();
-        assertThat(s1.contains(vm3)).isTrue();
-        assertThat(s1.contains(vm2)).isFalse();
+        assertThat(s1, containsOnly(vm1, vm3));
+        assertThat(s1, hasLoadPercentageOf(new Percent(75)));
 
-        assertThat(s2.contains(vm2)).isTrue();
-        assertThat(s2.contains(vm1)).isFalse();
-        assertThat(s2.contains(vm3)).isFalse();
-
-        MatcherAssert.assertThat(s1, hasLoadPercentageOf(new Percent(75)));
-        MatcherAssert.assertThat(s2, hasLoadPercentageOf(new Percent(67)));
+        assertThat(s2, containsOnly(vm2));
+        assertThat(s2, hasLoadPercentageOf(new Percent(67)));
     }
 }
